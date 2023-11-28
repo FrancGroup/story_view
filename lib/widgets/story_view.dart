@@ -4,11 +4,13 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 import '../controller/story_controller.dart';
 import '../utils.dart';
 import 'story_image.dart';
 import 'story_video.dart';
+import 'story_lottie.dart';
 
 /// Indicates where the progress indicators should be placed.
 enum ProgressPosition { top, bottom, none }
@@ -35,8 +37,8 @@ class StoryItem {
 
   /// The page content
   final Widget view;
-  StoryItem(
-    this.view, {
+
+  StoryItem(this.view, {
     required this.duration,
     this.shown = false,
   });
@@ -87,8 +89,8 @@ class StoryItem {
           child: Text(
             title,
             style: textStyle?.copyWith(
-                  color: contrast > 1.8 ? Colors.white : Colors.black,
-                ) ??
+              color: contrast > 1.8 ? Colors.white : Colors.black,
+            ) ??
                 TextStyle(
                   color: contrast > 1.8 ? Colors.white : Colors.black,
                   fontSize: 18,
@@ -142,13 +144,13 @@ class StoryItem {
                   color: caption != null ? Colors.black54 : Colors.transparent,
                   child: caption != null
                       ? Text(
-                          caption,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        )
+                    caption,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  )
                       : SizedBox(),
                 ),
               ),
@@ -215,10 +217,62 @@ class StoryItem {
     );
   }
 
+  factory StoryItem.pageLottie(String url, {
+    required StoryController controller,
+    Key? key,
+    Duration? duration,
+    BoxFit imageFit = BoxFit.fitWidth,
+    String? caption,
+    bool shown = false,
+    Map<String, dynamic>? requestHeaders,
+  }) {
+    final lottie = Lottie.network(url,
+    onLoaded: (composition) {
+      duration = composition.duration;
+    });
+    lottie.lottie.load();
+    return StoryItem(
+        Container(
+          key: key,
+          color: Colors.black,
+          child: Stack(
+            children: <Widget>[
+              StoryLottie.url(
+                url,
+                controller: controller,
+                requestHeaders: requestHeaders,
+              ),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: 24),
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    color:
+                    caption != null ? Colors.black54 : Colors.transparent,
+                    child: caption != null
+                        ? Text(
+                      caption,
+                      style: TextStyle(fontSize: 15, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    )
+                        : SizedBox(),
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+        shown: shown,
+        duration: duration ?? Duration(seconds: 10));
+  }
+
   /// Shorthand for creating page video. [controller] should be same instance as
   /// one passed to the `StoryView`
-  factory StoryItem.pageVideo(
-    String url, {
+  factory
+  StoryItem.pageVideo
+      (String url, {
     required StoryController controller,
     Key? key,
     Duration? duration,
@@ -246,13 +300,13 @@ class StoryItem {
                     margin: EdgeInsets.only(bottom: 24),
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                     color:
-                        caption != null ? Colors.black54 : Colors.transparent,
+                    caption != null ? Colors.black54 : Colors.transparent,
                     child: caption != null
                         ? Text(
-                            caption,
-                            style: TextStyle(fontSize: 15, color: Colors.white),
-                            textAlign: TextAlign.center,
-                          )
+                      caption,
+                      style: TextStyle(fontSize: 15, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    )
                         : SizedBox(),
                   ),
                 ),
@@ -267,8 +321,7 @@ class StoryItem {
   /// Shorthand for creating a story item from an image provider such as `AssetImage`
   /// or `NetworkImage`. However, the story continues to play while the image loads
   /// up.
-  factory StoryItem.pageProviderImage(
-    ImageProvider image, {
+  factory StoryItem.pageProviderImage(ImageProvider image, {
     Key? key,
     BoxFit imageFit = BoxFit.fitWidth,
     String? caption,
@@ -302,16 +355,16 @@ class StoryItem {
                       vertical: 8,
                     ),
                     color:
-                        caption != null ? Colors.black54 : Colors.transparent,
+                    caption != null ? Colors.black54 : Colors.transparent,
                     child: caption != null
                         ? Text(
-                            caption,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          )
+                      caption,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
                         : SizedBox(),
                   ),
                 ),
@@ -326,8 +379,7 @@ class StoryItem {
   /// Shorthand for creating an inline story item from an image provider such as `AssetImage`
   /// or `NetworkImage`. However, the story continues to play while the image loads
   /// up.
-  factory StoryItem.inlineProviderImage(
-    ImageProvider image, {
+  factory StoryItem.inlineProviderImage(ImageProvider image, {
     Key? key,
     Text? caption,
     bool shown = false,
@@ -402,12 +454,13 @@ class StoryView extends StatefulWidget {
   /// a [ListView] or [Column]) then set this to `true`.
   final bool inline;
 
-  // Controls the playback of the stories
+// Controls the playback of the stories
   final StoryController controller;
 
-  // Indicator Color
+// Indicator Color
   final Color? indicatorColor;
-  // Indicator Foreground Color
+
+// Indicator Foreground Color
   final Color? indicatorForegroundColor;
 
   StoryView({
@@ -452,8 +505,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    // All pages after the first unshown page should have their shown value as
-    // false
+// All pages after the first unshown page should have their shown value as
+// false
     final firstPage = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
     if (firstPage == null) {
       widget.storyItems.forEach((it2) {
@@ -468,28 +521,28 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
     this._playbackSubscription =
         widget.controller.playbackNotifier.listen((playbackStatus) {
-      switch (playbackStatus) {
-        case PlaybackState.play:
-          _removeNextHold();
-          this._animationController?.forward();
-          break;
+          switch (playbackStatus) {
+            case PlaybackState.play:
+              _removeNextHold();
+              this._animationController?.forward();
+              break;
 
-        case PlaybackState.pause:
-          _holdNext(); // then pause animation
-          this._animationController?.stop(canceled: false);
-          break;
+            case PlaybackState.pause:
+              _holdNext(); // then pause animation
+              this._animationController?.stop(canceled: false);
+              break;
 
-        case PlaybackState.next:
-          _removeNextHold();
-          _goForward();
-          break;
+            case PlaybackState.next:
+              _removeNextHold();
+              _goForward();
+              break;
 
-        case PlaybackState.previous:
-          _removeNextHold();
-          _goBack();
-          break;
-      }
-    });
+            case PlaybackState.previous:
+              _removeNextHold();
+              _goBack();
+              break;
+          }
+        });
 
     _play();
   }
@@ -513,7 +566,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
   void _play() {
     _animationController?.dispose();
-    // get the next playing page
+// get the next playing page
     final storyItem = widget.storyItems.firstWhere((it) {
       return !it!.shown;
     })!;
@@ -531,7 +584,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
         if (widget.storyItems.last != storyItem) {
           _beginPlay();
         } else {
-          // done playing
+// done playing
           _onComplete();
         }
       }
@@ -587,7 +640,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     if (this._currentStory != widget.storyItems.last) {
       _animationController!.stop();
 
-      // get last showing
+// get last showing
       final _last = this._currentStory;
 
       if (_last != null) {
@@ -597,7 +650,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
         }
       }
     } else {
-      // this is the last page, progress animation should skip to end
+// this is the last page, progress animation should skip to end
       _animationController!
           .animateTo(1.0, duration: Duration(milliseconds: 10));
     }
@@ -633,7 +686,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   : Alignment.bottomCenter,
               child: SafeArea(
                 bottom: widget.inline ? false : true,
-                // we use SafeArea here for notched and bezeles phones
+// we use SafeArea here for notched and bezeles phones
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16,
@@ -666,7 +719,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   widget.controller.play();
                 },
                 onTapUp: (details) {
-                  // if debounce timed out (not active) then continue anim
+// if debounce timed out (not active) then continue anim
                   if (_nextDebouncer?.isActive == false) {
                     widget.controller.play();
                   } else {
@@ -676,37 +729,37 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 onVerticalDragStart: widget.onVerticalSwipeComplete == null
                     ? null
                     : (details) {
-                        widget.controller.pause();
-                      },
+                  widget.controller.pause();
+                },
                 onVerticalDragCancel: widget.onVerticalSwipeComplete == null
                     ? null
                     : () {
-                        widget.controller.play();
-                      },
+                  widget.controller.play();
+                },
                 onVerticalDragUpdate: widget.onVerticalSwipeComplete == null
                     ? null
                     : (details) {
-                        if (verticalDragInfo == null) {
-                          verticalDragInfo = VerticalDragInfo();
-                        }
+                  if (verticalDragInfo == null) {
+                    verticalDragInfo = VerticalDragInfo();
+                  }
 
-                        verticalDragInfo!.update(details.primaryDelta!);
+                  verticalDragInfo!.update(details.primaryDelta!);
 
-                        // TODO: provide callback interface for animation purposes
-                      },
+// TODO: provide callback interface for animation purposes
+                },
                 onVerticalDragEnd: widget.onVerticalSwipeComplete == null
                     ? null
                     : (details) {
-                        widget.controller.play();
-                        // finish up drag cycle
-                        if (!verticalDragInfo!.cancel &&
-                            widget.onVerticalSwipeComplete != null) {
-                          widget.onVerticalSwipeComplete!(
-                              verticalDragInfo!.direction);
-                        }
+                  widget.controller.play();
+// finish up drag cycle
+                  if (!verticalDragInfo!.cancel &&
+                      widget.onVerticalSwipeComplete != null) {
+                    widget.onVerticalSwipeComplete!(
+                        verticalDragInfo!.direction);
+                  }
 
-                        verticalDragInfo = null;
-                      },
+                  verticalDragInfo = null;
+                },
               )),
           Align(
             alignment: Alignment.centerLeft,
@@ -741,14 +794,13 @@ class PageBar extends StatefulWidget {
   final Color? indicatorColor;
   final Color? indicatorForegroundColor;
 
-  PageBar(
-    this.pages,
-    this.animation, {
-    this.indicatorHeight = IndicatorHeight.large,
-    this.indicatorColor,
-    this.indicatorForegroundColor,
-    Key? key,
-  }) : super(key: key);
+  PageBar(this.pages,
+      this.animation, {
+        this.indicatorHeight = IndicatorHeight.large,
+        this.indicatorColor,
+        this.indicatorForegroundColor,
+        Key? key,
+      }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -793,7 +845,7 @@ class PageBarState extends State<PageBar> {
             child: StoryProgressIndicator(
               isPlaying(it) ? widget.animation!.value : (it.shown ? 1 : 0),
               indicatorHeight:
-                  widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
+              widget.indicatorHeight == IndicatorHeight.large ? 5 : 3,
               indicatorColor: widget.indicatorColor,
               indicatorForegroundColor: widget.indicatorForegroundColor,
             ),
@@ -813,8 +865,7 @@ class StoryProgressIndicator extends StatelessWidget {
   final Color? indicatorColor;
   final Color? indicatorForegroundColor;
 
-  StoryProgressIndicator(
-    this.value, {
+  StoryProgressIndicator(this.value, {
     this.indicatorHeight = 5,
     this.indicatorColor,
     this.indicatorForegroundColor,
@@ -827,11 +878,11 @@ class StoryProgressIndicator extends StatelessWidget {
         this.indicatorHeight,
       ),
       foregroundPainter: IndicatorOval(
-        this.indicatorForegroundColor?? Colors.white.withOpacity(0.8),
+        this.indicatorForegroundColor ?? Colors.white.withOpacity(0.8),
         this.value,
       ),
       painter: IndicatorOval(
-        this.indicatorColor?? Colors.white.withOpacity(0.4),
+        this.indicatorColor ?? Colors.white.withOpacity(0.4),
         1.0,
       ),
     );
@@ -846,7 +897,8 @@ class IndicatorOval extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = this.color;
+    final paint = Paint()
+      ..color = this.color;
     canvas.drawRRect(
         RRect.fromRectAndRadius(
             Rect.fromLTWH(0, 0, size.width * this.widthFactor, size.height),
