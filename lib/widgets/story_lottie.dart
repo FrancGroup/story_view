@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:lottie/lottie.dart';
 
 import '../utils.dart';
@@ -21,11 +19,8 @@ class LottieLoader {
   }
 
   Future<void> loadFutureLottie(VoidCallback onComplete) async {
-    lottieBuilder = Lottie.network(
-        url,
-        key: this.key,
-        repeat: false,
-    );
+    lottieBuilder = Lottie.network(url,
+        key: this.key, alignment: Alignment.topLeft, fit: BoxFit.fill);
     this.state = LoadState.success;
     onComplete();
   }
@@ -90,10 +85,8 @@ class StoryLottieState extends State<StoryLottie>
 
   Widget getContentView() {
     if (widget.lottieLoader.state == LoadState.success) {
-      var lottieHeight = widget.lottieLoader.lottieBuilder.height;
-      var lottieWidth = widget.lottieLoader.lottieBuilder.width;
-      return Center(
-        child: widget.lottieLoader.lottieBuilder
+      return Container(
+        child: widget.lottieLoader.lottieBuilder,
       );
     }
 
