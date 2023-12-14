@@ -34,6 +34,9 @@ class StoryItem {
   /// story item.
   bool shown;
 
+  /// The position of the current story in the list of stories that will be shown 
+  int? position;
+
   /// The page content
   final Widget view;
 
@@ -41,6 +44,7 @@ class StoryItem {
     this.view, {
     required this.duration,
     this.shown = false,
+    this.position
   });
 
   /// Short hand to create text-only page.
@@ -225,6 +229,7 @@ class StoryItem {
     BoxFit imageFit = BoxFit.fitWidth,
     String? caption,
     bool shown = false,
+    int? position,
     Map<String, dynamic>? requestHeaders,
   }) {
     final lottie = Lottie.network(url, onLoaded: (composition) {
@@ -263,6 +268,7 @@ class StoryItem {
           ),
         ),
         shown: shown,
+        position: position??0,
         duration: duration ?? Duration(seconds: 10));
   }
 

@@ -1,6 +1,6 @@
 name: story_view_lottie
 description: Display stories just like Whatsapp & Instagram. Can be used inline/inside ListView or Column just like Google News app. Comes with gestures to pause, forward & go to previous page.
-version: 0.15.0
+version: 1.1.0
 homepage: https://github.com/FrancGroup/story_view
 
 environment:
