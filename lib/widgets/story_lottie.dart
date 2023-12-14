@@ -19,7 +19,7 @@ class LottieLoader {
   }
 
   Future<void> loadFutureLottie(VoidCallback onComplete) async {
-    lottieBuilder = Lottie.network(url, key: this.key);
+    lottieBuilder = Lottie.network(url, key: this.key, repeat: false);
     this.state = LoadState.success;
     onComplete();
   }
